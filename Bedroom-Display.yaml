@@ -213,6 +213,7 @@ sensor:
       filters:
         - offset: 0 # Placeholder for offset
         - lambda: return x * 1; # Placeholder for scaling
+#--------------------------
       on_value:
         then:
         - lvgl.label.update:
@@ -229,30 +230,51 @@ sensor:
 #              - lvgl.widget.redraw
 #            else:
 #              - light.turn_off: back_light
+#--------------------------
       on_value_range:
         - below: 0.09
           then:
             - light.turn_off: back_light
+#--------------------------
         - above: 0.1
           below: 2.99
           then:
             - light.turn_on:
                 id: back_light
                 brightness: 75%
+            - if:
+                condition: lvgl.is_paused
+                then:
+                  - lvgl.resume:
+                  - lvgl.widget.redraw:
+#--------------------------
         - above: 3.00
           below: 5.99
           then:
             - light.turn_on:
                 id: back_light
                 brightness: 85%
+            - if:
+                condition: lvgl.is_paused
+                then:
+                  - lvgl.resume:
+                  - lvgl.widget.redraw:
+#--------------------------
         - above: 6.00
           then:
             - light.turn_on:
                 id: back_light
                 brightness: 100%
+            - if:
+                condition: lvgl.is_paused
+                then:
+                  - lvgl.resume:
+                  - lvgl.widget.redraw:
+#--------------------------
     full_spectrum:
       name: "Bedroom Display White Light"
       id: bedroom_disp_white_light
+#--------------------------
     infrared:
       name: "Bedroom Display Infrared Light"
       id: bedroom_disp_infred

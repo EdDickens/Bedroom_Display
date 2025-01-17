@@ -91,6 +91,14 @@ time:
         seconds: 0
         then:
           - switch.turn_off: switch_antiburn
+      - minutes: '*'
+        seconds: 30
+        then:
+          - script.execute: show_outdoor_page
+      - minutes: '*'
+        seconds: 0
+        then:
+          - script.execute: show_home_page
 #---------------------------------------------------------------------------------------------------
 sensor:
   - platform: homeassistant
@@ -151,7 +159,7 @@ sensor:
 #-------------------------------------------------------
   - platform: homeassistant
     id: bedroom_outdoor_temp
-    entity_id: sensor.outdoor_temperature
+    entity_id: sensor.ecowitt_outdoor_temperature #Ecowitt Temperature
     unit_of_measurement: "°F"
     state_class: measurement
     device_class: temperature
@@ -165,7 +173,7 @@ sensor:
 #-------------------------------------------------------
   - platform: homeassistant
     id: bedroom_outdoor_humidity
-    entity_id: sensor.humidity_3
+    entity_id: sensor.ecowitt_humidity #Ecowitt
     unit_of_measurement: "%"
     state_class: measurement
     device_class: humidity
@@ -930,6 +938,14 @@ script:
             }
             snprintf(time_buf, sizeof(time_buf), "%2d:%02d%s", hour_12, now.minute, is_pm ? "pm" : "am");
             return time_buf;
+#-------------------------------------------------------
+  - id: show_home_page
+    then:
+      lvgl.page.show: main_page
+#-------------------------------------------------------
+  - id: show_outdoor_page
+    then:
+      lvgl.page.show: outdoor_page
 #---------------------------------------------------------------------------------------------------
 switch:
   - platform: restart

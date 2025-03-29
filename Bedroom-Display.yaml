@@ -26,6 +26,10 @@ esp32:
   framework:
     type: arduino
 #---------------------------------------------------------------------------------------------------
+#psram:
+#  mode: octal
+#  speed: 80MHz
+#---------------------------------------------------------------------------------------------------
 # Enable logging
 logger:
   logs:
@@ -426,7 +430,8 @@ color:
 #---------------------------------------------------------------------------------------------------
 display:
   - platform: ili9xxx
-    model: ili9341
+    model: ILI9341
+    color_palette: 8BIT    #REQUIRED for 2025.2 Esphome to work.
     spi_id: lcd
     dc_pin: 
       number: GPIO2
@@ -878,10 +883,11 @@ lvgl:
                             - logger.log:
                                 format: "Sending humidity value of %.0f"
                                 args: [x]
-                            - homeassistant.action:
-                                action: input_number.set_value
+                            - homeassistant.service:
+                                service: number.set_value
                                 data:
                                   entity_id: input_number.bedroom_humidity_setpoint
+                                  value: !lambda return x;
                     - button:
                         id: spin_up
                         width: 54

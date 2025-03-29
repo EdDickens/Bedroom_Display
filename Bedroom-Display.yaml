@@ -26,9 +26,9 @@ esp32:
   framework:
     type: arduino
 #---------------------------------------------------------------------------------------------------
-#psram:
-#  mode: octal
-#  speed: 80MHz
+psram:
+  mode: octal
+  speed: 80MHz
 #---------------------------------------------------------------------------------------------------
 # Enable logging
 logger:
@@ -49,13 +49,6 @@ wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
 
-#  manual_ip:
-#    static_ip: 10.0.0.135
-#    gateway: 10.0.0.1
-#    subnet: 255.255.255.0
-#    dns1: 75.75.75.75
-#    dns2: 75.75.76.76
-  
   fast_connect: off
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails

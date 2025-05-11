@@ -7,7 +7,11 @@ substitutions:
   air_purifier_icon: "\U000F0D44" # mdi-air-purifier
   air_purifier_off_icon: "\U000F1B57" # mdi-air-purifier-off
   fan_icon: "\U000F0210" # mdi-fan
-#---------------------------------------------------------------------------------------------------
+  trending_up: "\U000F0535" # mdi:trending-up
+  trending_down: "\U000F0533" # mdi:trending-down
+  steady: "\U000F0534" # mdi:trending-neutral
+  Outlines: "0" # Setting to 0 will disable all Outlines.
+#-#---------------------------------------------------------------------------------------------------
 esphome:
   name: ${name}
   friendly_name: ${friendly_name}
@@ -27,7 +31,7 @@ esp32:
     type: arduino
 #---------------------------------------------------------------------------------------------------
 psram:
-  mode: octal
+  mode: quad
   speed: 80MHz
 #---------------------------------------------------------------------------------------------------
 # Enable logging
@@ -89,9 +93,13 @@ time:
         then:
           - switch.turn_off: switch_antiburn
       - minutes: '*'
-        seconds: 30
+        seconds: 20
         then:
           - script.execute: show_outdoor_page
+      - minutes: '*'
+        seconds: 40
+        then:
+          - script.execute: show_pressure_page
       - minutes: '*'
         seconds: 0
         then:
@@ -195,6 +203,68 @@ sensor:
           text:
             format:  "%3.2f"
             args: [ 'x' ]
+#--------------------------------------
+  - platform: homeassistant
+    id: pressure_trend
+    entity_id: sensor.avg_pressure_trend
+    unit_of_measurement: ""
+    state_class: measurement
+    device_class: humidity
+    internal: true
+    on_value_range: 
+      - below: -0.030 #Falling Fast
+        then:
+          - lvgl.label.update:
+              id: home_pressure_trend
+              text: $trending_down
+              text_color: 0xFF0000
+#------------------------
+      - above: -0.029 #Falling
+        below: -0.020
+        then:
+          - lvgl.label.update:
+              id: home_pressure_trend
+              text: $trending_down
+              text_color: 0xFF8000
+#------------------------
+      - above: -0.019 # Slowly Falling
+        below: -0.010
+        then:
+          - lvgl.label.update:
+              id: home_pressure_trend
+              text: $trending_down
+              text_color: 0xE6E600
+#------------------------
+      - above: -0.009 # Steady
+        below: 0.010
+        then:
+          - lvgl.label.update:
+              id: home_pressure_trend
+              text: $steady
+              text_color: 0xFFFFFF
+#------------------------
+      - above: 0.011 # Slowly Rising
+        below: 0.020
+        then:
+          - lvgl.label.update:
+              id: home_pressure_trend
+              text: $trending_up
+              text_color: 0xE6E600
+#------------------------
+      - above: 0.021 # Rising
+        below: 0.030
+        then:
+          - lvgl.label.update:
+              id: home_pressure_trend
+              text: $trending_up
+              text_color: 0xFF8000
+#------------------------
+      - above: 0.031 # Rising Fast
+        then:
+          - lvgl.label.update:
+              id: home_pressure_trend
+              text: $trending_up
+              text_color: 0xFF0000
 #-------------------------------------------------------
   - platform: homeassistant
     id: room_humidity
@@ -373,6 +443,16 @@ font:
       "\U000F0D44", # mdi-air-purifier
       "\U000F1B57", # mdi-air-purifier-off
       "\U000F0210", # mdi-fan
+      ]          
+
+  - file: 'fonts/materialdesignicons-webfont.ttf' # http://materialdesignicons.com/cdn/7.4.47/ 
+    id: big_mat_des_icons
+    size: 100
+    bpp: 4
+    glyphs: [
+      "\U000F0535", # mdi:trending-up
+      "\U000F0533", # mdi:trending-down
+      "\U000F0534", # mdi:trending-neutral
       ]          
 #---------------------------------------------------------------------------------------------------
 color:
@@ -636,7 +716,7 @@ lvgl:
             layout:
               type: grid
               grid_columns: [FR(1)]
-              grid_rows: [FR(1),FR(1),FR(1)]
+              grid_rows: [FR(1),FR(1)]
             widgets:
               - label:
                   id: display_outdoor_temperature
@@ -645,7 +725,7 @@ lvgl:
                   text: "--°F"
                   grid_cell_x_align: STRETCH
                   grid_cell_y_align: STRETCH
-                  text_font: concert_60
+                  text_font: concert_80
                   text_color: value_color
                   text_align: CENTER
               - label:
@@ -655,19 +735,50 @@ lvgl:
                   text: "--%"
                   grid_cell_x_align: STRETCH
                   grid_cell_y_align: STRETCH
-                  text_font: concert_60
+                  text_font: concert_80
                   text_color: value_color
                   text_align: CENTER
+#-------------------------------------------------------
+    - id: pressure_page
+      bg_color: my_black
+      widgets:
+        - obj:
+            align: CENTER
+            width: 220
+            height: 270
+            x: 0
+            y: 0
+            pad_all: 3
+            bg_opa: TRANSP
+            border_opa: TRANSP
+            layout:
+              type: grid
+              grid_columns: [FR(1)]
+              grid_rows: [FR(1),FR(1)]
+            widgets:
               - label:
                   id: display_pressure
                   grid_cell_column_pos: 0
-                  grid_cell_row_pos: 2
+                  grid_cell_row_pos: 0
                   text: "--inHg"
                   grid_cell_x_align: STRETCH
                   grid_cell_y_align: STRETCH
-                  text_font: concert_60
+                  text_font: concert_80
                   text_color: value_color
                   text_align: CENTER
+              - label:
+                  id: home_pressure_trend
+                  grid_cell_column_pos: 0
+                  grid_cell_row_pos: 1
+                  text: $steady
+                  text_font: big_mat_des_icons
+                  text_color: 0x323AA8
+                  grid_cell_x_align: STRETCH
+                  grid_cell_y_align: CENTER
+                  align: CENTER
+                  text_align: CENTER
+                  outline_width: ${Outlines}
+                  outline_color: 0xFF80FF
 #-------------------------------------------------------
     - id: AQI_page
       bg_color: my_black
@@ -945,6 +1056,10 @@ script:
   - id: show_outdoor_page
     then:
       lvgl.page.show: outdoor_page
+#-------------------------------------------------------
+  - id: show_pressure_page
+    then:
+      lvgl.page.show: pressure_page
 #---------------------------------------------------------------------------------------------------
 switch:
   - platform: restart

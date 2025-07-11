@@ -69,8 +69,8 @@ dashboard_import:
 # esp32_improv:
 #  authorizer: none
 
-# To have a "next url" for improv serial
-web_server:
+# Creates a simple web server on the node that can be accessed through any browser
+#web_server:
 #---------------------------------------------------------------------------------------------------
 time:
   - platform: homeassistant
@@ -80,13 +80,13 @@ time:
         id: header_label
         text: !lambda return id(FullTimeDate).state;
     on_time:
-      - hours: 10,12,14,16,1,4
+      - hours: 10,12,14,16,6
         minutes: 0
         seconds: 0
         then:
           - switch.turn_on: switch_antiburn
-      - hours: 10,12,14,16,1,4
-        minutes: 10
+      - hours: 10,12,14,16,6
+        minutes: 15
         seconds: 0
         then:
           - switch.turn_off: switch_antiburn
@@ -119,28 +119,28 @@ sensor:
             args: [ 'x' ]
 #--------------------------------------
   - platform: homeassistant
-    id: water_heater_alarm
-    entity_id: sensor.utility_room_temperature_delta_f
+    id: freezer_alarm
+    entity_id: sensor.utility_room_freezer_temperature_degf
     unit_of_measurement: "°F"
     state_class: measurement
     device_class: temperature
-    internal: true
+    internal: false
     on_value_range: 
-      - above: 2.51
-        then:
-          - lvgl.widget.update:
-              id:
-                - header_label
-              styles:
-                - header_footer
-      - below: 2.50
+      - above: 35.1
         then:
           - lvgl.widget.update:
               id:
                 - header_label
               styles:
                 - warning_header      
-#-------------------------------------------------------
+      - below: 35.0
+        then:
+          - lvgl.widget.update:
+              id:
+                - header_label
+              styles:
+                - header_footer
+#--------------------------------------
   - platform: homeassistant
     id: bedroom_humidity
     entity_id: sensor.esphome_web_c92e14_bedroom_enviro_humidity
@@ -526,6 +526,8 @@ color:
     blue: 0%
   - id: value_color
     hex: 2F8CD8
+  - id: outdoor_color
+    hex: 15d615
   - id: icon_on_color
     hex: FEC130
   - id: icon_off_color
@@ -638,7 +640,7 @@ lvgl:
     - display_1
   touchscreens:
     - touchscreen_1
-  buffer_size: 25%
+#  buffer_size: 25%
   disp_bg_color: my_black
 #---------------------------------------------------  
   style_definitions:
@@ -773,7 +775,7 @@ lvgl:
                   grid_cell_x_align: STRETCH
                   grid_cell_y_align: STRETCH
                   text_font: concert_80
-                  text_color: value_color
+                  text_color: outdoor_color
                   text_align: CENTER
               - label:
                   id: display_outdoor_humidity
@@ -783,7 +785,7 @@ lvgl:
                   grid_cell_x_align: STRETCH
                   grid_cell_y_align: STRETCH
                   text_font: concert_80
-                  text_color: value_color
+                  text_color: outdoor_color
                   text_align: CENTER
 #-------------------------------------------------------
     - id: pressure_page

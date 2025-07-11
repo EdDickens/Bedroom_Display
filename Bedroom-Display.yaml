@@ -119,29 +119,6 @@ sensor:
             args: [ 'x' ]
 #--------------------------------------
   - platform: homeassistant
-    id: freezer_alarm
-    entity_id: sensor.utility_room_freezer_temperature_degf
-    unit_of_measurement: "°F"
-    state_class: measurement
-    device_class: temperature
-    internal: false
-    on_value_range: 
-      - above: 35.1
-        then:
-          - lvgl.widget.update:
-              id:
-                - header_label
-              styles:
-                - warning_header      
-      - below: 35.0
-        then:
-          - lvgl.widget.update:
-              id:
-                - header_label
-              styles:
-                - header_footer
-#--------------------------------------
-  - platform: homeassistant
     id: bedroom_humidity
     entity_id: sensor.esphome_web_c92e14_bedroom_enviro_humidity
     unit_of_measurement: "%"

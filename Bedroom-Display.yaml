@@ -49,28 +49,23 @@ ota:
   - platform: esphome
     password: !secret ota_password
 #---------------------------------------------------------------------------------------------------
+# Creates a simple web server on the node that can be accessed through any browser
+#web_server:
+#  port: 80
+#  ota: false
+#  auth:
+#    username: admin
+#    password: !secret web_password
+#---------------------------------------------------------------------------------------------------
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
 
   fast_connect: off
-
-  # Enable fallback hotspot (captive portal) in case wifi connection fails
-  ap:
-    ssid: "Bedroom Display"
-    password: !secret ap_password
 #---------------------------------------------------------------------------------------------------
 dashboard_import:
   package_import_url: github://esphome/example-configs/esphome-web/esp32.yaml@main
   import_full_config: true
-
-# Sets up Bluetooth LE (Only on ESP32) to allow the user
-# to provision wifi credentials to the device.
-# esp32_improv:
-#  authorizer: none
-
-# Creates a simple web server on the node that can be accessed through any browser
-#web_server:
 #---------------------------------------------------------------------------------------------------
 time:
   - platform: homeassistant

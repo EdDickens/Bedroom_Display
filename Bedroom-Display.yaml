@@ -1,6 +1,6 @@
 substitutions:
   name: "bedroom-display"
-  friendly_name: bedroom-display
+  friendly_name: Bedroom Display
   devicename: "Bedroom Display"
   humidifier_icon: "\U000F1099" # mdi-air-humidifier
   humidifier_off_icon: "\U000F1466" # mdi-air-humidifier-off
@@ -196,6 +196,61 @@ sensor:
           text:
             format:  "%3.2f"
             args: [ 'x' ]
+#------------------------
+    on_value_range: 
+      - below: 29.40 # Very Low
+        then:
+          - lvgl.label.update:
+              id: display_pressure
+              text_color: 0xC60000
+              bg_color: 0x000000
+#------------------------
+      - above: 29.41 # Low
+        below: 29.70
+        then:
+          - lvgl.label.update:
+              id: display_pressure
+              text_color: 0xFF8000
+              bg_color: 0x000000
+#------------------------
+      - above: 29.71 # A Littel Low
+        below: 29.90
+        then:
+          - lvgl.label.update:
+              id: display_pressure
+              text_color: 0xE6E600
+              bg_color: 0x000000
+#------------------------
+      - above: 29.91 # Normal
+        below: 30.10
+        then:
+          - lvgl.label.update:
+              id: display_pressure
+              text_color: 0x00AA00
+              bg_color: 0x000000
+#------------------------
+      - above: 30.11 # A Little High
+        below: 30.30
+        then:
+          - lvgl.label.update:
+              id: display_pressure
+              text_color: 0xE6E600
+              bg_color: 0x000000
+#------------------------
+      - above: 30.31 # High
+        below: 30.50
+        then:
+          - lvgl.label.update:
+              id: display_pressure
+              text_color: 0xFF8000
+              bg_color: 0x000000
+#------------------------
+      - above: 30.51 # Very High
+        then:
+          - lvgl.label.update:
+              id: display_pressure
+              text_color: 0xC60000
+              bg_color: 0x000000
 #--------------------------------------
   - platform: homeassistant
     id: pressure_trend
@@ -272,7 +327,7 @@ sensor:
     update_interval: 60s
     i2c_id: i2c_bus_a
     ambient_light:
-      name: "Bedroom Display Ambient Light"
+      name: "${friendly_name} Ambient Light"
       id: bedroom_Disp_Amb_Light
       unit_of_measurement: "lx"
       state_class: measurement
@@ -340,11 +395,11 @@ sensor:
                   - lvgl.widget.redraw:
 #--------------------------
     full_spectrum:
-      name: "Bedroom Display White Light"
+      name: "${friendly_name} White Light"
       id: bedroom_disp_white_light
 #--------------------------
     infrared:
-      name: "Bedroom Display Infrared Light"
+      name: "${friendly_name} Infrared Light"
       id: bedroom_disp_infred
 #---------------------------------------------------------------------------------------------------
 text_sensor:
@@ -357,6 +412,16 @@ text_sensor:
     - lvgl.label.update:
         id: header_label
         text: !lambda return id(FullTimeDate).state;
+#--------------------------
+- platform: wifi_info
+  ip_address:
+    name: ${friendly_name} IP
+    update_interval: 1h
+  ssid:
+    name: ${friendly_name} SSID
+    update_interval: 1h
+  mac_address:
+    name: ${friendly_name} Mac
 #---------------------------------------------------------------------------------------------------
 binary_sensor:
   - platform: homeassistant
@@ -557,7 +622,7 @@ output:
 light:
   - platform: monochromatic
     output: backlight
-    name: "Display Backlight"
+    name: "${friendly_name} Backlight"
     id: back_light
     restore_mode: ALWAYS_ON
   - platform: rgb
@@ -1006,7 +1071,7 @@ lvgl:
                         on_value:
                           then:
                             - logger.log:
-                                format: "Sending humidity value of %.0f"
+                                format: "${friendly_name} sending humidity value of %.0f"
                                 args: [x]
                             - homeassistant.service:
                                 service: number.set_value
@@ -1057,7 +1122,7 @@ script:
 #---------------------------------------------------------------------------------------------------
 switch:
   - platform: restart
-    name: "Bedroom Display Restart"
+    name: "${friendly_name} Restart"
 #-------------------------------------------------------
   - platform: template
     name: Antiburn
@@ -1066,7 +1131,7 @@ switch:
     optimistic: true
     entity_category: "config"
     turn_on_action:
-      - logger.log: "Starting Antiburn"
+      - logger.log: "${friendly_name} Starting Antiburn"
       - if:
           condition: lvgl.is_paused
           then:
@@ -1076,7 +1141,7 @@ switch:
       - lvgl.pause:
           show_snow: true
     turn_off_action:
-      - logger.log: "Stopping Antiburn"
+      - logger.log: "${friendly_name} Stopping Antiburn"
       - if:
           condition: lvgl.is_paused
           then:

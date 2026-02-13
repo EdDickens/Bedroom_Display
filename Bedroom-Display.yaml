@@ -58,9 +58,9 @@ ota:
 #    password: !secret web_password
 #---------------------------------------------------------------------------------------------------
 wifi:
+  min_auth_mode: wpa2
   ssid: !secret wifi_ssid
   password: !secret wifi_password
-
   fast_connect: off
 #---------------------------------------------------------------------------------------------------
 dashboard_import:
@@ -314,14 +314,6 @@ sensor:
               text: $trending_up
               text_color: 0xFF0000
 #-------------------------------------------------------
-  - platform: homeassistant
-    id: room_humidity
-    entity_id: input_number.bedroom_humidity_setpoint
-    on_value:
-      - lvgl.spinbox.update:
-          id: humidity_spinner
-          value: !lambda return x;
-#-------------------------------------------------------
   - platform: veml7700
     address: 0x10
     update_interval: 60s
@@ -423,17 +415,17 @@ text_sensor:
   mac_address:
     name: ${friendly_name} Mac
 #---------------------------------------------------------------------------------------------------
-binary_sensor:
-  - platform: homeassistant
-    id: humidifier_controller
-    entity_id: automation.bedroom_humidifier_control_duplicate
-    publish_initial_state: true
-    on_state:
-      then:
-        lvgl.widget.update:
-          id: humidifier_button
-          state:
-            checked: !lambda return x;
+#binary_sensor:
+#  - platform: homeassistant
+#    id: humidifier_controller
+#    entity_id: automation.bedroom_humidifier_control_duplicate
+#    publish_initial_state: true
+#    on_state:
+#      then:
+#        lvgl.widget.update:
+#          id: humidifier_button
+#          state:
+#            checked: !lambda return x;
 #---------------------------------------------------------------------------------------------------
 spi:
   - id: lcd
@@ -976,122 +968,6 @@ lvgl:
                   text_opa: 75%
                   outline_width: 1
                   outline_color: my_black
-#-------------------------------------------------------
-    - id: humidity_control
-      bg_color: my_black
-      widgets:
-        - obj:
-            align: CENTER
-            width: 220
-            height: 250
-            x: 0
-            y: 0
-            pad_all: 3
-            bg_opa: TRANSP
-            border_opa: TRANSP
-            layout:
-              type: grid
-              grid_columns: [FR(1)]
-              grid_rows: [120,120]
-            widgets:
-              - button:
-                  id: humidifier_button
-                  grid_cell_column_pos: 0
-                  grid_cell_row_pos: 0
-                  grid_cell_x_align: CENTER
-                  grid_cell_y_align: CENTER
-                  align: CENTER
-                  width: 120
-                  height: 70
-                  bg_color: button_background
-                  text_color: icon_off_color
-                  border_width: 1
-                  border_color: my_gray
-                  checkable: true
-                  checked:
-                    text_color: icon_on_color
-                    bg_color: button_background
-                  widgets:
-                    - label:
-                        align: CENTER
-                        text: $humidifier_icon
-                        text_font: mat_des_icons
-                  on_click:
-                    - homeassistant.action:
-                        action: automation.toggle
-                        data:
-                          entity_id: automation.bedroom_humidifier_control_duplicate
-              - obj:
-                  grid_cell_column_pos: 0
-                  grid_cell_row_pos: 1
-                  grid_cell_x_align: CENTER
-                  grid_cell_y_align: CENTER
-                  border_opa: TRANSP
-                  bg_opa: TRANSP
-                  align: CENTER
-                  layout:
-                    type: FLEX
-                    flex_flow: ROW
-                    flex_align_cross: CENTER
-                  width: SIZE_CONTENT
-                  height: SIZE_CONTENT
-                  widgets:
-                    - button:
-                        id: spin_down
-                        width: 54
-                        bg_color: button_background
-                        border_color: my_gray
-                        border_width: 2
-                        on_click:
-                          - lvgl.spinbox.decrement: humidity_spinner
-                        widgets:
-                          - label:
-                               text: "-"
-                               text_font: concert_30
-                               text_color: value_color
-                               align: CENTER
-                    - spinbox:
-                        id: humidity_spinner
-                        align: CENTER
-                        text_align: CENTER
-                        text_font: concert_30
-                        bg_opa: TRANSP
-                        text_color: value_color
-                        selected:
-                          text_color: value_color
-                          bg_color: my_black
-                          bg_opa: TRANSP
-                        width: 50
-                        range_from: 20
-                        range_to: 50
-                        step: 1.0
-                        rollover: false
-                        digits: 2
-                        decimal_places: 0
-                        on_value:
-                          then:
-                            - logger.log:
-                                format: "${friendly_name} sending humidity value of %.0f"
-                                args: [x]
-                            - homeassistant.service:
-                                service: number.set_value
-                                data:
-                                  entity_id: input_number.bedroom_humidity_setpoint
-                                  value: !lambda return x;
-                    - button:
-                        id: spin_up
-                        width: 54
-                        bg_color: button_background
-                        border_color: my_gray
-                        border_width: 2
-                        on_click:
-                          - lvgl.spinbox.increment: humidity_spinner
-                        widgets:
-                          - label:
-                              text: "+"
-                              text_font: concert_30
-                              text_color: value_color
-                              align: CENTER
 #---------------------------------------------------------------------------------------------------
 number:
   - platform: template

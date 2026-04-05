@@ -20,10 +20,6 @@ esphome:
   project:
     name: mobydork.bedroom_display
     version: '1.0'
-#  on_boot:
-#    priority: -100
-#    then:
-#      - script.execute: backlight_timer
 #---------------------------------------------------------------------------------------------------
 esp32:
   board: esp32dev
@@ -87,18 +83,9 @@ time:
         seconds: 0
         then:
           - switch.turn_off: switch_antiburn
-#      - minutes: '*'
-#        seconds: 20
-#        then:
-#          - lvgl.page.show: outdoor_page
-#      - minutes: '*'
-#        seconds: 40
-#        then:
-#          - lvgl.page.show: pressure_page
-#      - minutes: '*'
-#        seconds: 0
-#        then:
-#          - lvgl.page.show: main_page
+      - seconds: /10 # Every 10 seconds
+        then:
+          - lvgl.page.next
 #---------------------------------------------------------------------------------------------------
 globals:
   - id: night_floor_val
@@ -724,6 +711,9 @@ lvgl:
       bg_color: my_black
       widgets:
         - obj:
+            on_long_press:
+              then:
+                - lvgl.page.show: settings_page
             align: CENTER
             width: 220
             height: 270
@@ -762,6 +752,9 @@ lvgl:
       bg_color: my_black
       widgets:
         - obj:
+            on_long_press:
+              then:
+                - lvgl.page.show: settings_page
             align: CENTER
             width: 220
             height: 270
@@ -800,6 +793,9 @@ lvgl:
       bg_color: my_black
       widgets:
         - obj:
+            on_long_press:
+              then:
+                - lvgl.page.show: settings_page
             align: CENTER
             width: 220
             height: 270
@@ -841,6 +837,9 @@ lvgl:
       bg_color: my_black
       widgets:
         - obj:
+            on_long_press:
+              then:
+                - lvgl.page.show: settings_page
             align: CENTER
             width: 220
             height: 250
@@ -949,7 +948,16 @@ lvgl:
                   outline_color: my_black
 #-------------------------------------------------------
     - id: settings_page
+      skip: true
       bg_color: my_black
+      on_load:
+        then:
+          - lvgl.label.update:
+              id: floor_pct_label
+              text: !lambda 'return String((int)id(night_floor_val)) + "%";'
+          - lvgl.slider.update:
+              id: min_bright_slider
+              value: !lambda "return id(night_floor_val);"
       widgets:
         - obj:
             align: CENTER
@@ -973,6 +981,7 @@ lvgl:
                   grid_cell_x_align: CENTER
                   grid_cell_y_align: CENTER
                   text_font: concert_40
+                  text_color: value_color
               - label:
                   id: floor_pct_label
                   align: CENTER
@@ -980,7 +989,8 @@ lvgl:
                   grid_cell_row_pos: 1
                   grid_cell_x_align: CENTER
                   grid_cell_y_align: CENTER
-                  text_font: concert_30
+                  text_font: concert_40
+                  text_color: value_color
                   text: !lambda 'return String((int)id(night_floor_val)) + "%";'
               - slider:
                   id: min_bright_slider
@@ -997,6 +1007,10 @@ lvgl:
                   value: !lambda "return id(night_floor_val);"
                   on_value:
                     then:
+                      - lvgl.label.update:
+                          id: floor_pct_label
+                          text: !lambda 'return String((int)x) + "%";'
+                  on_release:
                       - globals.set:
                           id: night_floor_val
                           value: !lambda "return x;"
@@ -1014,6 +1028,8 @@ lvgl:
                   widgets:
                     - label:
                         text: "SAVE"
+                        text_font: concert_20
+                        text_color: my_white
                         align: CENTER
                   on_click:
                     then:

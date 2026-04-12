@@ -73,12 +73,12 @@ time:
         id: header_label
         text: !lambda return id(FullTimeDate).state;
     on_time:
-      - hours: 10,12,14,16,6
+      - hours: /4 # Every 4 hours
         minutes: 0
         seconds: 0
         then:
           - switch.turn_on: switch_antiburn
-      - hours: 10,12,14,16,6
+      - hours: /4
         minutes: 15
         seconds: 0
         then:
@@ -340,7 +340,7 @@ sensor:
                 // 1. Define your boundaries adn convert HA Number (0-100) to a float (0.0-1.0)
                 float min_brightness = id(night_floor_val) / 100.0;
                 float max_brightness = 1.0;  // 100%
-                float high_lux = 100.0;       // Brightness stops increasing at 100 Lux
+                float high_lux = 150.0;       // Brightness stops increasing at 150 Lux
 
                 // 2. If it's pitch black, use the slider value as the floor
                 if (x <= 0.01) {
@@ -835,6 +835,7 @@ lvgl:
 #-------------------------------------------------------
     - id: AQI_page
       bg_color: my_black
+      skip: true
       widgets:
         - obj:
             on_long_press:
@@ -1002,7 +1003,7 @@ lvgl:
                   height: 30
                   align: CENTER
                   min_value: 0
-                  max_value: 25 
+                  max_value: 50 
                   # Syncs with the Global
                   value: !lambda "return id(night_floor_val);"
                   on_value:
@@ -1075,5 +1076,3 @@ switch:
           then:
             - lvgl.resume:
             - lvgl.widget.redraw:
-            - delay: 1s
-            - lvgl.pause:

@@ -2,11 +2,11 @@ substitutions:
   name: "bedroom-display"
   friendly_name: Bedroom Display
   devicename: "Bedroom Display"
-  humidifier_icon: "\U000F1099" # mdi-air-humidifier
-  humidifier_off_icon: "\U000F1466" # mdi-air-humidifier-off
-  air_purifier_icon: "\U000F0D44" # mdi-air-purifier
-  air_purifier_off_icon: "\U000F1B57" # mdi-air-purifier-off
-  fan_icon: "\U000F0210" # mdi-fan
+  #humidifier_icon: "\U000F1099" # mdi-air-humidifier
+  #humidifier_off_icon: "\U000F1466" # mdi-air-humidifier-off
+  #air_purifier_icon: "\U000F0D44" # mdi-air-purifier
+  #air_purifier_off_icon: "\U000F1B57" # mdi-air-purifier-off
+  #fan_icon: "\U000F0210" # mdi-fan
   trending_up: "\U000F0535" # mdi:trending-up
   trending_down: "\U000F0533" # mdi:trending-down
   steady: "\U000F0534" # mdi:trending-neutral
@@ -85,13 +85,21 @@ time:
           - switch.turn_off: switch_antiburn
       - seconds: /10 # Every 10 seconds
         then:
-          - lvgl.page.next
+          - if:
+              condition:
+                lambda: 'return id(auto_page_flip);'
+              then:
+                - lvgl.page.next
 #---------------------------------------------------------------------------------------------------
 globals:
   - id: night_floor_val
     type: float
     restore_value: yes
-    initial_value: '5.0' # Default to 5% if all else fails
+    initial_value: '30.0' # Default to 5% if all else fails
+  - id: auto_page_flip
+    type: bool
+    restore_value: no
+    initial_value: 'true'
 #---------------------------------------------------------------------------------------------------
 sensor:
   - platform: uptime
@@ -233,7 +241,7 @@ sensor:
         then:
           - lvgl.label.update:
               id: display_pressure
-              text_color: 0xE6E600
+              text_color: 0x99AA00
               bg_color: 0x000000
 #------------------------
       - above: 30.31 # High
@@ -241,14 +249,14 @@ sensor:
         then:
           - lvgl.label.update:
               id: display_pressure
-              text_color: 0xFF8000
+              text_color: 0x6600AA
               bg_color: 0x000000
 #------------------------
       - above: 30.51 # Very High
         then:
           - lvgl.label.update:
               id: display_pressure
-              text_color: 0xC60000
+              text_color: 0xA400AA
               bg_color: 0x000000
 #--------------------------------------
   - platform: homeassistant
@@ -355,11 +363,6 @@ sensor:
                 // 4. Otherwise, map the value linearly between the two points
                 // Linear map: scale lux between the user's "floor" and 100%
                 return (x / high_lux) * (max_brightness - min_brightness) + min_brightness;
-          - lvgl.label.update:
-              id: display_brightness
-              text:
-                format:  "%3.2f"
-                args: [ 'x' ]
 #--------------------------
     full_spectrum:
       name: "White Light"
@@ -460,17 +463,17 @@ font:
       - file: "gfonts://Concert One"
         glyphs: [µ,³]
 
-  - file: 'fonts/materialdesignicons-webfont.ttf' # http://materialdesignicons.com/cdn/7.4.47/ 
-    id: mat_des_icons
-    size: 50
-    bpp: 4
-    glyphs: [
-      "\U000F1099", # mdi-air-humidifier
-      "\U000F1466", # mdi-air-humidifier-off
-      "\U000F0D44", # mdi-air-purifier
-      "\U000F1B57", # mdi-air-purifier-off
-      "\U000F0210", # mdi-fan
-      ]          
+#  - file: 'fonts/materialdesignicons-webfont.ttf' # http://materialdesignicons.com/cdn/7.4.47/ 
+#    id: mat_des_icons
+#    size: 50
+#    bpp: 4
+#    glyphs: [
+#      "\U000F1099", # mdi-air-humidifier
+#      "\U000F1466", # mdi-air-humidifier-off
+#      "\U000F0D44", # mdi-air-purifier
+#      "\U000F1B57", # mdi-air-purifier-off
+#      "\U000F0210", # mdi-fan
+#      ]          
 
   - file: 'fonts/materialdesignicons-webfont.ttf' # http://materialdesignicons.com/cdn/7.4.47/ 
     id: big_mat_des_icons
@@ -520,7 +523,7 @@ color:
     green: 0%
     blue: 0%
   - id: value_color
-    hex: 2F8CD8
+    hex: 2fb3d8
   - id: outdoor_color
     hex: 15d615
   - id: icon_on_color
@@ -699,7 +702,10 @@ lvgl:
                 text: "\uF015"
                 on_press:
                   then:
-                    lvgl.page.show: main_page
+                  - globals.set:
+                      id: auto_page_flip
+                      value: 'true'
+                  - lvgl.page.show: main_page
               - id: page_next
                 text: "\uF054"
                 on_press:
@@ -713,6 +719,9 @@ lvgl:
         - obj:
             on_long_press:
               then:
+                - globals.set:
+                    id: auto_page_flip
+                    value: 'false'
                 - lvgl.page.show: settings_page
             align: CENTER
             width: 220
@@ -754,6 +763,9 @@ lvgl:
         - obj:
             on_long_press:
               then:
+                - globals.set:
+                    id: auto_page_flip
+                    value: 'false'
                 - lvgl.page.show: settings_page
             align: CENTER
             width: 220
@@ -795,6 +807,9 @@ lvgl:
         - obj:
             on_long_press:
               then:
+                - globals.set:
+                    id: auto_page_flip
+                    value: 'false'
                 - lvgl.page.show: settings_page
             align: CENTER
             width: 220
@@ -835,11 +850,14 @@ lvgl:
 #-------------------------------------------------------
     - id: AQI_page
       bg_color: my_black
-      skip: true
+      skip: false
       widgets:
         - obj:
             on_long_press:
               then:
+                - globals.set:
+                    id: auto_page_flip
+                    value: 'false'
                 - lvgl.page.show: settings_page
             align: CENTER
             width: 220
@@ -852,7 +870,7 @@ lvgl:
             layout:
               type: grid
               grid_columns: [FR(1),FR(1)]
-              grid_rows: [FR(1),FR(1),FR(1)]
+              grid_rows: [FR(1),FR(1)]
             widgets:
               - label:
                   id: display_pm25
@@ -910,37 +928,6 @@ lvgl:
                     align: out_right_bottom
                   y: 0
                   text: "ppm"
-                  text_align: LEFT
-                  text_font: concert_30
-                  text_color: value_color
-                  text_opa: 75%
-                  outline_width: 1
-                  outline_color: my_black
-              - label:
-                  id: display_brightness
-                  grid_cell_column_pos: 0
-                  grid_cell_row_pos: 2
-                  grid_cell_x_align: CENTER
-                  grid_cell_y_align: CENTER
-                  y: 0
-                  text: "--"
-                  text_align: RIGHT
-                  text_font: concert_30
-                  text_color: value_color
-                  text_opa: 100%
-                  outline_width: 1
-                  outline_color: my_black
-              - label:
-                  id: display_brightness_units
-                  grid_cell_column_pos: 1
-                  grid_cell_row_pos: 2
-                  grid_cell_x_align: CENTER
-                  grid_cell_y_align: CENTER
-                  align_to:
-                    id:  display_brightness
-                    align: out_right_bottom
-                  y: 0
-                  text: "lx"
                   text_align: LEFT
                   text_font: concert_30
                   text_color: value_color
